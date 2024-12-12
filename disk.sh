@@ -57,7 +57,19 @@ mkdir -p "$MOUNT_POINT"
 echo "Mounting $PARTITION to $MOUNT_POINT..."
 mount "$PARTITION" "$MOUNT_POINT"
 
-UUID=$(blkid -s UUID -o value "$PARTITION")
+# Check for blkid availability
+if ! command -v blkid &>/dev/null; then
+    if [ -x "/usr/sbin/blkid" ]; then
+        BLKID_CMD="/usr/sbin/blkid"
+    else
+        echo "Error: blkid not found. Please install util-linux."
+        exit 1
+    fi
+else
+    BLKID_CMD="blkid"
+fi
+
+UUID=$($BLKID_CMD -s UUID -o value "$PARTITION")
 
 cp /etc/fstab /etc/fstab.bak
 
